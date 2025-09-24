@@ -28,6 +28,12 @@ module Terminus
     patch "/api/screens/:id", to: "api.screens.patch", as: :api_screen_patch
     delete "/api/screens/:id", to: "api.screens.delete", as: :api_screen_delete
 
+    get "/api/playlist_items", to: "api.playlist_items.index", as: :api_playlist_items
+    get "/api/playlist_items/:id", to: "api.playlist_items.show", as: :api_playlist_item
+    post "/api/playlist_items", to: "api.playlist_items.create", as: :api_playlist_item_create
+    patch "/api/playlist_items/:id", to: "api.playlist_items.patch", as: :api_playlist_item_patch
+    delete "/api/playlist_items/:id", to: "api.playlist_items.delete", as: :api_playlist_item_delete
+
     get "/api/setup", to: "api.setup.show", as: :api_setup
 
     # TODO: Remove once Firmware drops trailing slash requirement.

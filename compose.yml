@@ -3,7 +3,9 @@ name: "terminus"
 services:
   web:
     init: true
-    image: ghcr.io/usetrmnl/terminus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       HANAMI_PORT: ${HANAMI_PORT}
       API_URI: ${API_URI}
