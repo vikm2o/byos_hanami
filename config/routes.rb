@@ -28,11 +28,11 @@ module Terminus
     patch "/api/screens/:id", to: "api.screens.patch", as: :api_screen_patch
     delete "/api/screens/:id", to: "api.screens.delete", as: :api_screen_delete
 
-    get "/api/playlist_items", to: "api.playlist_items.index", as: :api_playlist_items
-    get "/api/playlist_items/:id", to: "api.playlist_items.show", as: :api_playlist_item
-    post "/api/playlist_items", to: "api.playlist_items.create", as: :api_playlist_item_create
-    patch "/api/playlist_items/:id", to: "api.playlist_items.patch", as: :api_playlist_item_patch
-    delete "/api/playlist_items/:id", to: "api.playlist_items.delete", as: :api_playlist_item_delete
+    get "/api/playlists/:playlist_id/items", to: "api.playlists.items.index", as: :api_playlist_items
+    get "/api/playlists/:playlist_id/items/:id", to: "api.playlists.items.show", as: :api_playlist_item
+    post "/api/playlists/:playlist_id/items", to: "api.playlists.items.create", as: :api_playlist_item_create
+    patch "/api/playlists/:playlist_id/items/:id", to: "api.playlists.items.patch", as: :api_playlist_item_patch
+    delete "/api/playlists/:playlist_id/items/:id", to: "api.playlists.items.delete", as: :api_playlist_item_delete
 
     get "/api/setup", to: "api.setup.show", as: :api_setup
 
