@@ -19,15 +19,15 @@ module Terminus
               required(:id).filled :integer
 
               required(:playlist_item).filled(:hash) do
-                optional(:screen_id).filled :integer
-                optional(:position).filled :integer
-                optional(:repeat_interval).filled :integer
-                optional(:repeat_type).filled :string
-                optional(:repeat_days).filled :array
-                optional(:last_day_of_month).filled :bool
-                optional(:start_at).filled :date_time
-                optional(:stop_at).filled :date_time
-                optional(:hidden_at).filled :date_time
+                optional(:screen_id).maybe :integer
+                optional(:position).maybe :integer
+                optional(:repeat_interval).maybe :integer
+                optional(:repeat_type).maybe :string
+                optional(:repeat_days).maybe :array
+                optional(:last_day_of_month).maybe :bool
+                optional(:start_at).maybe :date_time
+                optional(:stop_at).maybe :date_time
+                optional(:hidden_at).maybe :date_time
               end
             end
 
@@ -41,7 +41,9 @@ module Terminus
                 )
                 
                 if playlist_item
-                  updated_item = repository.update(playlist_item.id, **parameters[:playlist_item])
+                  # Ignore nil optional fields so UI doesn't need to send them
+                  cleaned = parameters[:playlist_item].compact
+                  updated_item = repository.update(playlist_item.id, **cleaned)
                   response.body = {data: serializer.new(updated_item).to_h}.to_json
                 else
                   response.body = problem[status: :not_found].to_json

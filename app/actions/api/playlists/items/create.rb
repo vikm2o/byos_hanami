@@ -21,14 +21,14 @@ module Terminus
               required(:playlist_id).filled :integer
               required(:playlist_item).filled(:hash) do
                 required(:screen_id).filled :integer
-                optional(:position).filled :integer
-                optional(:repeat_interval).filled :integer
-                optional(:repeat_type).filled :string
-                optional(:repeat_days).filled :array
-                optional(:last_day_of_month).filled :bool
-                optional(:start_at).filled :date_time
-                optional(:stop_at).filled :date_time
-                optional(:hidden_at).filled :date_time
+                optional(:position).maybe :integer
+                optional(:repeat_interval).maybe :integer
+                optional(:repeat_type).maybe :string
+                optional(:repeat_days).maybe :array
+                optional(:last_day_of_month).maybe :bool
+                optional(:start_at).maybe :date_time
+                optional(:stop_at).maybe :date_time
+                optional(:hidden_at).maybe :date_time
               end
             end
 
@@ -51,7 +51,8 @@ module Terminus
               
               halt :not_found unless playlist
 
-              item_params = params[:playlist_item].merge(playlist_id: playlist_id)
+              # Remove nils so DB NOT NULL defaults (e.g. repeat_days) are respected
+              item_params = params[:playlist_item].compact.merge(playlist_id: playlist_id)
               item = repository.create_with_position(**item_params)
               playlist_repository.update_current_item playlist_id, item
               item
