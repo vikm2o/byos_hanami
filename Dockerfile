@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-ARG RUBY_VERSION=3.4.6
+ARG RUBY_VERSION=3.4.7
 
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
@@ -43,7 +43,7 @@ RUN <<STEPS
   echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
   curl -fsSL https://deb.nodesource.com/setup_$NODE_VERSION.x | bash -
   apt-get update -qq
-  apt-get install --no-install-recommends -y postgresql-client-17 nodejs
+  apt-get install --no-install-recommends -y postgresql-client-18 nodejs
   rm -rf /var/lib/apt/lists /var/cache/apt/archives
 STEPS
 
@@ -61,6 +61,8 @@ STEPS
 COPY .ruby-version Gemfile Gemfile.lock .node-version package.json package-lock.json ./
 
 RUN <<STEPS
+  git clone --bare --depth 1 --single-branch https://github.com/usetrmnl/byos_hanami .git
+  git -C .git fetch --tags
   bundle install
   npm ci
   rm -rf "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
@@ -102,4 +104,4 @@ ENTRYPOINT ["/app/bin/docker/entrypoint"]
 
 EXPOSE 2300
 
-CMD ["bundle", "exec", "overmind", "start", "--port-step", "10", "--can-die", "migrate,assets"]
+CMD ["bundle", "exec", "puma", "--config", "./config/puma.rb"]

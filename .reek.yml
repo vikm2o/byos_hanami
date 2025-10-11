@@ -3,6 +3,9 @@ exclude_paths:
   - vendor
 
 detectors:
+  Attribute:
+    exclude:
+      - Terminus::Views::Parts::User#password
   DataClump:
     exclude:
       - Terminus::Aspects::Screens::Shoter
@@ -17,6 +20,7 @@ detectors:
       - Terminus::Actions::Models::Update#error
       - Terminus::Actions::Playlists::Create#error
       - Terminus::Actions::Playlists::Update#error
+      - Terminus::Actions::Users::Update#error
       - Terminus::Aspects::Screens::Compressor#convert
       - Terminus::Aspects::Screens::Converter#convert
       - Terminus::Aspects::Screens::Converters::BMP#convert
@@ -29,6 +33,7 @@ detectors:
     enabled: false
   TooManyStatements:
     exclude:
+      - Terminus::Action#handle_rodauth_redirect
       - Terminus::Aspects::Firmware::Downloader#get
       - Terminus::Aspects::Screens::ColorMapper#colorize
       - Terminus::Aspects::Screens::ColorMapper#run

@@ -5,6 +5,7 @@
 :core_link: link:https://usetrmnl.com[Core]
 :image_magick_geometry_link: link:https://www.imagemagick.org/script/command-line-processing.php#geometry[ImageMagick Geometry]
 :petail_link: link:https://alchemists.io/projects/petail[Petail]
+:rodauth_link: link:https://rodauth.jeremyevans.net[Rodauth]
 :trmnl_firmware_link: link:https://github.com/usetrmnl/trmnl-firmware[TRMNL Firmware]
 
 = API
@@ -55,7 +56,7 @@ curl "https://localhost:2443/api/display?base_64=true" \
 Only the `ID` HTTP header is required for all of these API calls but these _optional_ headers can be supplied as well which mimics what each device includes each request:
 
 * `ACCESS_TOKEN`: Can be the API key or an empty string.
-* `BATTERY_VOLTAGE`: Must a a float (usually 0.0 to 4.1).
+* `BATTERY_VOLTAGE`: Must be a float (usually 0.0 to 4.1).
 * `FW_VERSION`: The firmware version (i.e. `1.2.3`).
 * `HOST`: The host (usually the IP address).
 * `REFRESH_RATE`: The refresh rate as saved on the device. Example: 100.
@@ -175,11 +176,73 @@ curl "https://localhost:2443/api/setup/" \
 
 == Server
 
-⚠️ *These endpoints are constantly evolving. We do our best to minimize impact but please be aware there might be action on your part when new changes are released.*
+⚠️ *These endpoints are constantly evolving. We do our best to minimize impact but please be aware action might be required on your part when new changes are released.*
 
-The following endpoints are unique to this server implementation and allow you to interact via your favorite JSON Data API client. Most of these endpoints require an HTTP `Access-Token` header which is your device's API key.
+These endpoints are unique to this server implementation and allow you to interact via your favorite JSON Data API client. The following features are supported:
 
-These endpoints are faster to change/update since they won't break any communication with your device. Any/all error responses adhere to link:https://www.rfc-editor.org/rfc/rfc9457[RFC 9457 (Problem Details for HTTP APIs)] as implemented by the {petail_link} gem which also means you can use Petail to easily parse the error responses in your own application if desired.
+* All endpoints require authentication using JWT tokens which is explained below.
+* All error responses adhere to link:https://www.rfc-editor.org/rfc/rfc9457[RFC 9457 (Problem Details for HTTP APIs)] as implemented by the {petail_link} gem which also means you can use Petail to easily parse the error responses in your own application if desired.
+
+=== Authentication
+
+All server specific endpoints require authentication using JWT tokens as powered by the {rodauth_link} gem. The following explains how this works.
+
+==== Login
+
+To acquire the JWT token necessary for making API requests, you only need to send the following request to the login endpoint as follows:
+
+[source,bash]
+----
+curl -X "POST" "https://localhost:2443/login" \
+     -H 'Content-Type: application/json' \
+     -d $'{
+  "login": "<redacted>",
+  "password": "<redacted>"
+}'
+----
+
+The above will yield the following response:
+
+[source,json]
+----
+{
+  "access_token": "<redacted>",
+  "refresh_token": "1_3_jm6ajAaXyUoaL6cdehXLPKRxvj9RJMmJecA_3p7lmj8",
+  "success": "You have been logged in."
+}
+----
+
+Your login (email) and password must be identical to what you supplied during the registration process via the Web UI.
+
+==== Refresh Tokens
+
+To refresh your `access_token` before it has expired (default: 30 minutes), you'll need to make an API request to the following endpoint:
+
+[source,bash]
+----
+curl -X "POST" "https://localhost:2443/api/jwt" \
+     -H 'Authorization: <redacted>' \
+     -H 'Content-Type: application/json' \
+     -d $'{
+  "refresh_token": "<redacted>"
+}'
+----
+
+The above will yield the following response:
+
+[source,json]
+----
+{
+  "refresh_token": "<redacted>",
+  "access_token": "<redacted>"
+}
+----
+
+With the above response in hand, you can now make new requests to refresh your access token by using the response's `access_token` for your authorization header along with the `refresh_token` for your payload body. A refresh token is valid for 14 days before expiring.
+
+==== Configuration
+
+If you wish to lengthen the amount of time before your JWT token expires, you can configure the `API_ACCESS_TOKEN_PERIOD` environment variable as documented in the link:/README.adoc#_configuration[Configuration].
 
 === Devices
 
@@ -192,10 +255,12 @@ Allows you to manage your devices.
 ----
 # All devices.
 curl "https://localhost:2443/api/devices" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json'
 
 # Single device.
 curl "https://localhost:2443/api/devices/1" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json'
 ----
 ====
@@ -272,6 +337,7 @@ You'll get an empty array when no devices exist.
 ----
 # Minimum
 curl -X "POST" "https://localhost:2443/api/devices" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "device": {
@@ -286,6 +352,7 @@ curl -X "POST" "https://localhost:2443/api/devices" \
 ----
 # Maximum (all possible fields)
 curl -X "POST" "https://localhost:2443/api/devices" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "device": {
@@ -348,6 +415,7 @@ curl -X "POST" "https://localhost:2443/api/devices" \
 ----
 ## Devices (patch)
 curl -X "PATCH" "https://localhost:2443/api/devices/1" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "device": {
@@ -356,7 +424,7 @@ curl -X "PATCH" "https://localhost:2443/api/devices/1" \
 }'
 ----
 
-You you change a single attribute or multiple attributes at once.
+You can change a single attribute or multiple attributes at once.
 ====
 
 .PATCH Response
@@ -399,6 +467,7 @@ You you change a single attribute or multiple attributes at once.
 ----
 ## Devices (delete)
 curl -X "DELETE" "https://localhost:2443/api/devices/1" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{}'
 ----
@@ -446,6 +515,8 @@ Provides model information which is the core specification for devices and scree
 * `core`: Originates from our {core_link} server and is part of the synchronization process provided by the model link:/doc/background_pollers.adoc[Background Pollers].
 * `terminus`: Originates from Terminus only.
 
+The following provides details on all requests and responses.
+
 .GET Request
 [%collapsible]
 ====
@@ -453,10 +524,12 @@ Provides model information which is the core specification for devices and scree
 ----
 # All models.
 curl "https://localhost:2443/api/models" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json'
 
 # Single model.
 curl "https://localhost:2443/api/models/1" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json'
 ----
 ====
@@ -522,6 +595,7 @@ You'll get an empty array when no models exist.
 [source,bash]
 ----
 curl -X "POST" "https://localhost:2443/api/models" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "model": {
@@ -579,6 +653,7 @@ curl -X "POST" "https://localhost:2443/api/models" \
 [source,bash]
 ----
 curl -X "PUT" "https://localhost:2443/api/models/12" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "model": {
@@ -624,6 +699,7 @@ You you change a single attribute or multiple attributes at once.
 [source,bash]
 ----
 curl -X "DELETE" "https://localhost:2443/api/models/2" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{}'
 ----
@@ -661,9 +737,7 @@ You'll get an empty hash when there is nothing to delete.
 
 === Screens
 
-Used for generating new device screens by supplying HTML content for rendering, screenshotting, and grey scaling to render properly on your device. Both `.png` or `.bmp` extensions are supported for the `file_name` key. If you don't supply a `file_name`, the server will generate one for you using a UUID for the file name. You can find all generated images in `public/assets/screens`.
-
-When making requests, the `Access-Token` is your device's API key. You can obtain this information from within the UI for your specific device.
+Used for generating new device screens by supplying HTML content for rendering, screenshotting, and grey scaling to render properly on your device. Both `.png` or `.bmp` extensions are supported for the `file_name` key. If you don't supply a `file_name`, the server will generate one for you using a UUID for the file name.
 
 .GET Request
 [%collapsible]
@@ -671,6 +745,7 @@ When making requests, the `Access-Token` is your device's API key. You can obtai
 [source,bash]
 ----
 curl "https://localhost:2443/api/screens" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json'
 ----
 ====
@@ -708,6 +783,7 @@ curl "https://localhost:2443/api/screens" \
 [source,bash]
 ----
 curl -X "POST" "https://localhost:2443/api/screens" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "screen": {
@@ -776,6 +852,7 @@ Due to this being so flexible, this also means you can pull in and use our link:
 [source,bash]
 ----
 curl -X "POST" "https://localhost:2443/api/screens" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "screen": {
@@ -798,6 +875,7 @@ Allows you to render a preprocessed image -- by you -- on your device. The `prep
 [source,bash]
 ----
 curl -X "POST" "https://localhost:2443/api/screens" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "screen": {
@@ -820,6 +898,7 @@ Allows you to render a unprocessed image on your device. We'll automatically pro
 [source,bash]
 ----
 curl -X "POST" "https://localhost:2443/api/screens" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "screen": {
@@ -868,10 +947,11 @@ No matter what parameters you use for this request, you'll always get a path (un
 [source,bash]
 ----
 curl -X "PATCH" "https://localhost:2443/api/screens/1" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json' \
      -d $'{
   "screen": {
-    "model_id": "1"
+    "model_id": "1",
     "label": "Demo",
     "name": "demo",
     "content": "<h1>Demo</h1>"
@@ -915,6 +995,7 @@ All of the above attributes are optional which means you can update only the att
 [source,bash]
 ----
 curl -X "DELETE" "https://localhost:2443/api/screens/13" \
+     -H 'Authorization: <redacted>' \
      -H 'Content-Type: application/json'
 ----
 ====

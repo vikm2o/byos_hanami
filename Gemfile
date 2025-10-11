@@ -28,24 +28,23 @@ gem "jwt", "~> 3.1"
 gem "mail", "~> 2.8"
 gem "marcel", "~> 1.0"
 gem "mini_magick", "~> 5.2"
-gem "overmind", "~> 2.5"
 gem "petail", "~> 0.3"
 gem "pg", "~> 1.6", force_ruby_platform: true
 gem "pipeable", "~> 1.2"
 gem "puma", "~> 7.0"
 gem "rack-attack", "~> 6.7"
 gem "refinements", "~> 13.0"
-gem "rodauth", "~> 2.40"
+gem "rodauth", "~> 2.41"
 gem "rom", "~> 5.4"
 gem "rom-sql", "~> 3.7"
 gem "sanitize", "~> 7.0"
-gem "sequel", "~> 5.89"
+gem "sequel", "~> 5.97"
 gem "shrine", "~> 3.6"
-gem "trmnl-api", "~> 0.5"
+gem "trmnl-api", "~> 0.6"
 gem "versionaire", "~> 14.1"
 
 group :quality do
-  gem "caliber", "~> 0.83"
+  gem "caliber", "~> 0.84"
   gem "git-lint", "~> 9.0"
   gem "reek", "~> 6.5", require: false
   gem "rubocop-sequel", "~> 0.3"
@@ -76,7 +75,7 @@ group :test do
 end
 
 group :tools do
-  gem "amazing_print", "~> 1.7"
+  gem "amazing_print", "~> 2.0"
   gem "debug", "~> 1.10"
   gem "irb-kit", "~> 1.1"
   gem "repl_type_completor", "~> 0.1"

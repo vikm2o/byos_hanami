@@ -15,7 +15,7 @@ services:
       - "${HANAMI_PORT}:${HANAMI_PORT}"
     volumes:
       - ".:/app"
-    command: bin/docker/entrypoint-dev
+    command: bin/docker/entrypoint-dev bundle exec puma --config ./config/puma.rb
     depends_on:
       database:
         condition: service_healthy
@@ -23,7 +23,7 @@ services:
       - terminus-network
 
   database:
-    image: postgres:17.6
+    image: postgres:18.0
     environment:
       POSTGRES_USER: ${PG_USER}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
@@ -31,7 +31,7 @@ services:
     ports:
       - "${PG_PORT}:${PG_PORT}"
     volumes:
-      - database-data:/var/lib/postgresql/data
+      - database-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DATABASE}"]
       interval: 1s

@@ -14,6 +14,7 @@ module Terminus
 
       def delete id
         find(id).then { it.attachment_destroy if it }
+
         firmware.by_pk(id).delete
       end
 

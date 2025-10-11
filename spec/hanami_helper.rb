@@ -12,6 +12,8 @@ require "spec_helper"
 
 ENV["HANAMI_ENV"] = "test"
 
+require "bcrypt"
+require "hanami/cli"
 require "hanami/prepare"
 
 using Refinements::Pathname
@@ -38,8 +40,11 @@ RSpec.configure do |config|
   config.define_derived_metadata(file_path: %r(/spec/features/)) { it[:type] = :feature }
   config.define_derived_metadata(file_path: %r(/spec/requests/)) { it[:type] = :request }
 
-  config.include_context "with application dependencies", type: :request
   config.include_context "with application dependencies", type: :feature
+  config.include_context "with application dependencies", type: :request
+  config.include_context "with user statuses", type: :feature
+  config.include_context "with user statuses", type: :request
+  config.include_context "with login", type: :feature
 
   databases = proc do
     Hanami.app.slices.with_nested.prepend(Hanami.app).each.with_object Set.new do |slice, dbs|
@@ -51,7 +56,7 @@ RSpec.configure do |config|
 
   config.before :suite do
     databases.call.each do |db|
-      DatabaseCleaner[:sequel, db:].clean_with :truncation, except: ["schema_migrations"]
+      DatabaseCleaner[:sequel, db:].clean_with :truncation, except: %w[schema_migrations]
     end
   end
 
