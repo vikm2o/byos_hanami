@@ -20,6 +20,7 @@ module Terminus
             required(:rotation).filled :integer
             required(:offset_x).filled :integer
             required(:offset_y).filled :integer
+            required(:scale_factor).filled :float
             required(:width).filled :integer
             required(:height).filled :integer
             required(:published_at).maybe :date_time
@@ -30,7 +31,7 @@ module Terminus
           parameters = request.params
           model = repository.find parameters[:id]
 
-          halt :unprocessable_entity unless model
+          halt :unprocessable_content unless model
 
           if parameters.valid?
             save model, parameters, response

@@ -5,7 +5,7 @@ require "hanami_helper"
 RSpec.describe Terminus::Aspects::Screens::Designer::EventStream, :db do
   subject(:event_stream) { described_class.new screen.name, kernel: }
 
-  include_context "with library dependencies"
+  include_context "with application dependencies"
 
   let(:screen) { Factory[:screen, :with_image] }
   let(:kernel) { class_spy Kernel }
@@ -26,9 +26,7 @@ RSpec.describe Terminus::Aspects::Screens::Designer::EventStream, :db do
     end
 
     it "logs debug message when screen is found" do
-      payload = nil
-      event_stream.each { payload = it }
-
+      event_stream.each { it == :ignore }
       expect(logger.reread).to match(%r(DEBUG.+Streaming.+/abc123.png\.))
     end
 
@@ -47,9 +45,7 @@ RSpec.describe Terminus::Aspects::Screens::Designer::EventStream, :db do
 
     it "logs debug message when screen doesn't exist" do
       event_stream = described_class.new("bogus", kernel:)
-      payload = nil
-
-      event_stream.each { payload = it }
+      event_stream.each { it == :ignore }
 
       expect(logger.reread).to match(%r(DEBUG.+/assets/loader.*\.svg\.))
     end

@@ -1,6 +1,6 @@
 <%= render "shared/title", text: "Mirror #{playlist.label} Playlist" %>
 
-<section class="page-playlists">
+<section class="bit-page page-playlists">
   <header class="bit-header">
     <ul class="bit-breadcrumbs">
       <li class="bit-breadcrumb"><a href="/playlists" class="link">Playlists</a></li>
@@ -29,7 +29,7 @@
           Check (or uncheck) the devices you'd like this playlist mirrored too.
         </p>
 
-        <fieldset role="group" class="group">
+        <fieldset class="column">
           <% devices.each do |device| %>
             <%= render :device, device:, playlist_id: playlist.id %>
           <% end %>

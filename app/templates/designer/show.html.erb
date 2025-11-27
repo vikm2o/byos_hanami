@@ -1,6 +1,8 @@
+<% content_for :htmx_merge, "defaultSwapStyle" => "innerHTML" %>
+
 <%= render "shared/title", text: "Designer" %>
 
-<section class="page-designer">
+<section class="bit-page page-designer">
   <header class="bit-header">
     <h1 class="label">
       Designer
@@ -39,9 +41,7 @@
                 class="source"
                 hx-post="/designer"
                 hx-trigger="load, keyup delay:200ms"
-                hx-swap="textContent">
-        <%= render :welcome %>
-      </textarea>
+                hx-swap="textContent"><%= render :welcome %></textarea>
     </form>
   </div>
 </section>

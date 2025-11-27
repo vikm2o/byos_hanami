@@ -15,7 +15,9 @@ else
     add_group "Config", "config"
     add_group "Contracts", "app/contracts"
     add_group "DB", "app/db"
+    add_group "Jobs", "app/jobs"
     add_group "Lib", "lib"
+    add_group "Providers", "app/providers"
     add_group "Relations", "app/relations"
     add_group "Repositories", "app/repositories"
     add_group "Schemas", "app/schemas"
@@ -29,10 +31,15 @@ end
 Bundler.require :tools
 
 require "dry/monads"
+require "http/fake"
 require "refinements"
 require "warning"
 
 SPEC_ROOT = Pathname(__dir__).realpath.freeze
+
+POORLY_MAINTAINED_GEMS = /
+  shrine                         # No longer maintained. We are working on a new solution.
+/x
 
 using Refinements::Pathname
 
@@ -40,7 +47,7 @@ Pathname.require_tree SPEC_ROOT.join("support/matchers")
 Pathname.require_tree SPEC_ROOT.join("support/shared_examples")
 Pathname.require_tree SPEC_ROOT.join("support/shared_contexts")
 
-Gem.path.each { |path| Warning.ignore(/shrine/, path) }
+Gem.path.each { |path| Warning.ignore POORLY_MAINTAINED_GEMS, path }
 
 RSpec.configure do |config|
   config.color = true

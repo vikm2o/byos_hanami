@@ -1,11 +1,17 @@
 # frozen_string_literal: true
 
+require "sidekiq/web"
+
+require "sidekiq-scheduler/web"
+
 require_relative "../app/aspects/screens/designer/middleware"
 
 module Terminus
   # The application base routes.
   class Routes < Hanami::Routes
     slice(:authentication, at: "/") { use Authentication::Middleware }
+
+    mount Sidekiq::Web, at: "/sidekiq"
 
     get "/", to: "dashboard.show", as: :root
 
@@ -38,7 +44,7 @@ module Terminus
 
     get "/api/setup", to: "api.setup.show", as: :api_setup
 
-    # TODO: Remove once Firmware drops trailing slash requirement.
+    # TODO: Firwmare 1.6.0 and higher fixes this but we need to get people off of 1.5.x first.
     get "/api/setup/", to: "api.setup.show", as: :api_setup
 
     delete "/bulk/devices/:device_id/logs",
@@ -60,6 +66,16 @@ module Terminus
 
     get "/designer", to: "designer.show", as: :designer
     post "/designer", to: "designer.create", as: :designer_create
+
+    get "/extensions", to: "extensions.index", as: :extensions
+    get "/extensions/new", to: "extensions.new", as: :extension_new
+    post "/extensions", to: "extensions.create", as: :extension_create
+    get "/extensions/:id/edit", to: "extensions.edit", as: :extension_edit
+    put "/extensions/:id", to: "extensions.update", as: :extension_update
+    delete "/extensions/:id", to: "extensions.delete", as: :extension_delete
+
+    get "/extensions/:id/preview", to: "extensions.preview.show", as: :extension_preview
+    get "/extensions/:id/poll", to: "extensions.poll.show", as: :extension_poll
 
     get "/firmware", to: "firmware.index", as: :firmware
     delete "/firmware/:id", to: "firmware.delete", as: :firmware_delete

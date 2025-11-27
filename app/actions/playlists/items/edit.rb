@@ -19,7 +19,7 @@ module Terminus
           def handle request, response
             parameters = request.params
 
-            halt :unprocessable_entity unless parameters.valid?
+            halt :unprocessable_content unless parameters.valid?
 
             item = repository.find_by playlist_id: parameters[:playlist_id], id: parameters[:id]
 
@@ -28,7 +28,6 @@ module Terminus
 
           private
 
-          # :reek:FeatureEnvy
           def screen_options prompt: "Select..."
             screens = screen_repository.all
             initial = prompt && screens.any? ? [[prompt, nil]] : []

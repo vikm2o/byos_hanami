@@ -8,6 +8,7 @@
 :core_api_link: link:https://usetrmnl.com/api-docs/index.html[Core API]
 :docker_doc_link: link:doc/docker.adoc[Docker]
 :docker_link: link:https://www.docker.com[Docker]
+:dragonfly_link: link:https://www.dragonflydb.io[Dragonfly]
 :git_link: link:https://git-scm.com[Git]
 :hanami_link: link:https://hanamirb.org[Hanami]
 :htmx_link: link:https://htmx.org[htmx]
@@ -16,10 +17,13 @@
 :postgres_link: link:https://www.postgresql.org[PostgreSQL]
 :puma_link: link:https://puma.io[Puma]
 :rack_attack_link: link:https://github.com/rack/rack-attack[Rack Attack]
+:redis_link: link:https://redis.io[Redis]
 :render_link: link:https://render.com[Render]
 :rodauth_link: link:https://rodauth.jeremyevans.net[Rodauth]
 :ruby_link: link:https://www.ruby-lang.org[Ruby]
+:sidekiq_link: link:https://github.com/sidekiq/sidekiq[Sidekiq]
 :trmnl_link: link:https://usetrmnl.com[TRMNL]
+:valkey_link: link:https://valkey.io[Valkey]
 :yjit_link: link:https://github.com/ruby/ruby/blob/master/doc/yjit/yjit.md[YJIT]
 
 = Terminus
@@ -51,6 +55,8 @@ toc::[]
 * Uses {postgres_link} for the database.
 * Uses {puma_link} for the server.
 * Uses {rodauth_link} for authentication.
+* Uses {sidekiq_link} for background jobs.
+* Uses {valkey_link} for the key/value cache.
 * Supports {yjit_link}.
 * Supports {docker_link}.
 * Supports {trmnl_link} devices.
@@ -75,24 +81,22 @@ The following is a high level overview you can use to compare/contrast when deci
 | JSON Data API                     | 🟢       | 🟢
 | Image Previews                    | 🟢       | 🟢
 | Playlists                         | 🟢       | 🟢
-| Plugins^*^                        | 🟢       | 🟢
-| Recipes^*^                        | 🟢       | 🟢
+| Plugins                           | 🟡       | 🟢
 | Account Management                | 🟢       | 🟢
 | Docker                            | 🟢       | 🔴
 |===
-
-ℹ️ Plugins and Recipes are supported by pulling screen data from our link:https://usetrmnl.com[Core] server. This means Terminus accesses data outside your private network to acquire this data. This is done by _proxying_, per device, to our Core server (disabled by default), downloading screens from your playlist, and then rendering on your device. See {background_pollers_link} for more details.
 
 == Requirements
 
 . {git_link}.
 . {docker_link}.
+. {hanami_link} (optional, for development).
 . {ruby_link} (optional, for development).
 . {postgres_link} (optional, for development).
-. {hanami_link} (optional, for development).
+. {valkey_link} (optional, for development): Can be swapped out for {redis_link} or {dragonfly_link} if desired.
 . {chrome_link} (optional, for development): For screen generation via the headless browser.
-. {overmind_link} (optional, for development): Uses your `Procfile` to launch all processes.
-. A {trmnl_link} device (can use a virtual device too).
+. {overmind_link} (optional, for development): Uses your `Procfile` to launch processes.
+. {trmnl_link} device (or use a virtual device within the application).
 
 == Quick Start
 
@@ -119,6 +123,18 @@ bin/setup
 ----
 
 💡 The setup script is idempotent so you can run it multiple times without harm. To rebuild a file managed by the setup script, delete the desired file and rerun setup to recreate.
+
+== Upgrade
+
+To upgrade this project for local development, run:
+
+[source,bash]
+----
+cd terminus
+bin/upgrade
+----
+
+Watch for any changes that need to be addressed in the output. Otherwise, if no changes are detected, you are all set.
 
 == Usage
 
@@ -153,11 +169,17 @@ There are several environment variables you can use to customize behavior by upd
 * `HANAMI_PORT`: The default port when running the app locally or via {docker_doc_link}. When using Docker, this is used for the internal and external port mapping.
 * `MODEL_POLLER`: Enables/disables model polling. See {background_pollers_link} for details. Defaults to enabled.
 * `RACK_ATTACK_ALLOWED_SUBNETS`: Defines the {rack_attack_link} subnets that are allowed to connect to this server which helps when adding DNS, a reverse proxy, or a VPN, etc. between your device and this application so you can use this environment variable to add more subnets as desired. This takes a single subnet/IP or an array -- with no spaces -- of subnets/IPs as values. Example: "111.111.111.111,150.120.0.0/16". Alternatively, you can disable Rack Attack altogether by removing the `config.middleware.use Rack::Attack` line from `config/app.rb` or customize Rack Attack via the `config/initializers/rack_attack.rb` file. Any of these approaches will allow you to get your service layer properly configured so your device can talk to this server. By default, the following subnets are allowed: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.1`, and `::1`.
-* `PG_DATABASE`: Defines your database name. Used by {docker_doc_link} only. Default: `terminus`.
-* `PG_PASSWORD`: Defines your database password. Used by {docker_doc_link} only. Default: (auto-generated for you during setup).
-* `PG_PORT`: Defines your database port. Used by {docker_doc_link} only. Default: `5432`.
-* `PG_USER`: Defines your database user. Used by {docker_doc_link} only. Default: `terminus`.
+* `DATABASE_NAME`: Defines your database name. Used by {docker_doc_link} only. Default: `terminus`.
+* `DATABASE_PASSWORD`: Defines your database password. Used by {docker_doc_link} only. Default: (auto-generated for you during setup).
+* `DATABASE_PORT`: Defines your database port. Used by {docker_doc_link} only. Default: `5432`.
+* `DATABASE_USER`: Defines your database user. Used by {docker_doc_link} only. Default: `terminus`.
+* `DATABASE_URL`: Defines the full URL based on the above `+DATABASE_*+` settings. This is automatically configured for you during setup. See your `+.env*+` files for details.
+* `KEYVALUE_DATABASE`: Defines your database ID. Used by {docker_doc_link} only. Default: `0`.
+* `KEYVALUE_PASSWORD`: Defines your password. Used by {docker_doc_link} only. Default: (auto-generated for you during setup).
+* `KEYVALUE_PORT`: Defines your port. Used by {docker_doc_link} only. Default: `6379`.
+* `KEYVALUE_URL`: Defines the full URL based on the above `+KEYVALUE_*+` settings. This is automatically configured for you during setup. See your `+.env*+` files for details.
 * `SCREEN_POLLER`: Enables/disables model polling. See {background_pollers_link} for details. Defaults to enabled.
+* `CERTIFICATE_URLS`: Define as a comma-separated list of CA certificate URLs, and the Docker Compose setup with install those certificates as trusted in the containers. Used by {docker_doc_link} only.
 
 === Users
 
@@ -179,6 +201,10 @@ Connecting your device to this server is as simple as using the captive WiFi por
 
 * link:https://help.usetrmnl.com/en/articles/12263392-connect-your-device-to-terminus-byos[How to connect your device to Terminus].
 * link:https://help.usetrmnl.com/en/articles/11663377-setting-up-a-trmnl-on-tricky-wi-fi-situations[Dealing with tricky Wi-Fi situations].
+
+=== Extensions
+
+See link:doc/extensions.adoc[Extensions] documentation for details.
 
 === Background Pollers
 

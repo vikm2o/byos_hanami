@@ -1,6 +1,6 @@
 <%= render "shared/title", text: "#{model.label} Model" %>
 
-<section class="page-models">
+<section class="bit-page page-models">
   <header class="bit-header">
     <ul class="bit-breadcrumbs">
       <li class="bit-breadcrumb"><a href="/models" class="link">Models</a></li>
@@ -12,14 +12,10 @@
     <div class="bit-card model">
       <h2 class="label"><%= model.label %></h2>
 
-      <div class="bit-actions">
-        <a href="<%= routes.path :model_edit, id: model.id %>"
-           hx-get="<%= routes.path :model_edit, id: model.id %>"
-           hx-target="closest .page-models"
-           hx-swap="outerHTML"
-           hx-push-url="true">
-          Edit
-        </a>
+      <div class="actions">
+        <%= render "shared/actions/edit",
+                   path: routes.path(:model_edit, id: model.id),
+                   target: "closest .page-models" %>
       </div>
 
       <dl class="bit-definition-list">
@@ -74,8 +70,14 @@
          <dt class="key">
            Y Offset
            <%= render "shared/popovers/trigger", name: :offset_y %>
-        </dt>
+         </dt>
          <dd class="value"><%= model.offset_y %></dd>
+
+         <dt class="key">
+           Scale Factor
+           <%= render "shared/popovers/trigger", name: :scale_factor %>
+         </dt>
+         <dd class="value"><%= model.scale_factor %></dd>
 
          <dt class="key">
            Width

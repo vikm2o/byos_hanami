@@ -1,6 +1,6 @@
 <%= render "shared/title", text: "Screens" %>
 
-<section class="page-screens">
+<section class="bit-page page-screens">
   <header class="bit-header">
     <h1 class="label">
       Screens
@@ -48,7 +48,6 @@
          hx-get="/screens/new"
          hx-trigger="click, keyup[ctrlKey&&key=='n'] from:body"
          hx-target="closest .page-screens"
-         hx-swap="outerHTML"
          hx-push-url="true">
         New
       </a>

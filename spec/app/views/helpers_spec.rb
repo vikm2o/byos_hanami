@@ -45,20 +45,63 @@ RSpec.describe Terminus::Views::Helpers do
     end
   end
 
+  describe "#field_included?" do
+    let(:record) { Data.define(:days).new days: %w[monday wednesday friday] }
+    let(:attributes) { {days: ["wednesday"]} }
+
+    it "answers true when included for record" do
+      expect(helper.field_included?(:days, "monday", attributes, record)).to be(true)
+    end
+
+    it "answers true when record is missing but value is in attributes" do
+      expect(helper.field_included?(:days, "wednesday", attributes)).to be(true)
+    end
+
+    it "answers false when record and attributes don't have value" do
+      expect(helper.field_included?(:days, "sunday", attributes, record)).to be(false)
+    end
+  end
+
   describe "#git_sha_link" do
-    it "answers link" do
-      expect(helper.git_sha_link).to eq(
+    let(:kernel) { class_double Kernel }
+
+    it "answers version link when latest and tag SHAs match" do
+      latest_sha = Hanami.app[:settings].git_latest_sha
+
+      allow(kernel).to receive(:`).with("git rev-parse --quiet --short 1.2.3^{}")
+                                  .and_return(latest_sha)
+
+      expect(helper.git_link(kernel:)).to eq(
+        %(<a class="link" href="https://github.com/usetrmnl/byos_hanami/releases/tag/1.2.3">) \
+        "Version 1.2.3</a>"
+      )
+    end
+
+    it "answers latest link when latest and tag SHAs don't match" do
+      allow(kernel).to receive(:`).with("git rev-parse --quiet --short 1.2.3^{}")
+                                  .and_return("different")
+
+      expect(helper.git_link(kernel:)).to eq(
         %(<a class="link" href="https://github.com/usetrmnl/byos_hanami/commit/abcdefghijkl">) \
-        "abcdefghijkl</a>"
+        "Latest (ahead of 1.2.3)</a>"
       )
     end
   end
 
-  describe "#git_tag_link" do
-    it "answers link" do
-      expect(helper.git_tag_link).to eq(
+  describe "#git_latest_link" do
+    it "answers version link when latest and tag SHAs match" do
+      expect(helper.git_latest_link).to eq(
+        %(<a class="link" href="https://github.com/usetrmnl/byos_hanami/commit/abcdefghijkl">) \
+        "Latest (ahead of 1.2.3)</a>"
+      )
+    end
+  end
+
+  describe "#git_version_link" do
+    it "answers version link when latest and tag SHAs match" do
+      expect(helper.git_version_link).to eq(
         %(<a class="link" href="https://github.com/usetrmnl/byos_hanami/releases/tag/1.2.3">) \
-        "1.2.3</a>"
+        "Version 1.2.3</a>"
       )
     end
   end

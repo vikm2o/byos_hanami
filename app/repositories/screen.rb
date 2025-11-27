@@ -23,7 +23,7 @@ module Terminus
       def create_with_image mold, struct
         name = mold.name
 
-        find_by(name:).then do |record|
+        find_by(name:, model_id: mold.model_id).then do |record|
           if record
             struct.image_destroy
             Failure "Screen exists with name: #{name.inspect}."
@@ -43,18 +43,20 @@ module Terminus
       def find_by(**) = with_associations.where(**).one
 
       def search key, value
-        screen.where(Sequel.ilike(key, "%#{value}%"))
-              .order { created_at.asc }
-              .to_a
+        with_associations.where(Sequel.ilike(key, "%#{value}%"))
+                         .order { created_at.asc }
+                         .to_a
       end
 
-      def update_image(name, io, **)
-        find_by(name:).then do |record|
+      def update_with_image(id, io, **attributes)
+        screen_attributes, image_attributes = attributes.values_at :screen, :image
+
+        find(id).then do |record|
           if record
-            record.replace(io, **)
-            Success update record.id, image_data: record.image_attributes
+            record.replace(io, **image_attributes)
+            Success update record.id, **screen_attributes, image_data: record.image_attributes
           else
-            Failure "Unabled to find screen: #{name.inspect}."
+            Failure "Unable to find screen ID: #{id}."
           end
         end
       end

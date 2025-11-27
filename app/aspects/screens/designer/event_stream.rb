@@ -1,9 +1,7 @@
 # auto_register: false
 # frozen_string_literal: true
 
-require "terminus/lib_container"
-
-require "terminus/dependencies"
+require "initable"
 
 module Terminus
   module Aspects
@@ -11,8 +9,7 @@ module Terminus
       module Designer
         # Renders device preview image event streams.
         class EventStream
-          include Deps[:assets, repository: "repositories.screen"]
-          include Terminus::Dependencies[:logger]
+          include Deps[:assets, :logger, repository: "repositories.screen"]
           include Initable[%i[req name], kernel: Kernel]
 
           def each

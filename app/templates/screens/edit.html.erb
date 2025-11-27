@@ -1,6 +1,6 @@
 <%= render "shared/title", text: "Edit #{screen.label} Screen" %>
 
-<section class="page-screens">
+<section class="bit-page page-screens">
   <header class="bit-header">
     <ul class="bit-breadcrumbs">
       <li class="bit-breadcrumb"><%= link_to "Screens", routes.path(:screens), class: :link %></li>
@@ -37,7 +37,6 @@
              hx-get="<%= routes.path :screen, id: screen.id %>"
              hx-trigger="click"
              hx-target="closest .page-screens"
-             hx-swap="outerHTML"
              hx-push-url="true">
              Cancel
           </a>

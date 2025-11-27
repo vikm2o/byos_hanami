@@ -4,6 +4,8 @@ require "hanami"
 require "petail"
 
 require_relative "initializers/rack_attack"
+require_relative "initializers/rack_logger_patch"
+require_relative "initializers/sql_logger_patch"
 
 module Terminus
   # The application base configuration.
@@ -23,15 +25,13 @@ module Terminus
     config.inflections { it.acronym "BMP", "HTML", "IP", "PNG" }
 
     config.actions.content_security_policy.then do |csp|
+      csp[:connect_src] += " https://usetrmnl.com"
+      csp[:font_src] += " https://usetrmnl.com"
       csp[:manifest_src] = "'self'"
-      csp[:script_src] += " 'unsafe-eval' 'unsafe-inline'"
+      csp[:script_src] += " 'unsafe-eval' 'unsafe-inline' https://usetrmnl.com"
     end
 
-    config.actions
-          .formats
-          .add(:all, "application/octet-stream")
-          .add(:all, "*/*")
-          .add :problem_details, Petail::MEDIA_TYPE_JSON
+    config.actions.formats.register :problem_details, Petail::MEDIA_TYPE_JSON
 
     # rubocop:todo Layout/FirstArrayElementLineBreak
     config.actions.sessions = :cookie,
@@ -45,16 +45,5 @@ module Terminus
     config.middleware.use Rack::Attack
     config.middleware.use Rack::Deflater
     config.middleware.use :body_parser, :json
-
-    environment :development do
-      # :nocov:
-      config.logger.options[:colorize] = true
-
-      config.logger = config.logger.instance.add_backend(
-        colorize: false,
-        stream: root.join("log/development.log")
-      )
-      # :nocov:
-    end
   end
 end
